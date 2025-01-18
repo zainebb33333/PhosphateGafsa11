@@ -1,0 +1,532 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phosphate Pulse: Economic and Environmental Harmony</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+    <style>
+        /* Styles for the page */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #ADD8E6, #f4f4f4);
+            color: #333;
+        }
+
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .nav a {
+            padding: 10px 20px;
+            text-decoration: none;
+            color: white;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+
+        .nav a:hover {
+            background-color: #388e3c;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .weather-info {
+            margin: 20px 0;
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+        }
+
+        .report-form input,
+        .report-form textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .report-form button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h1>Phosphate Pulse: Economic and Environmental Harmony</h1>
+    <div class="nav">
+        <a href="#" onclick="showSection('home')">Home</a>
+        <a href="#" onclick="showSection('location')">Location</a>
+        <a href="#" onclick="showSection('weather')">Weather</a>
+
+        <a href="#" onclick="showSection('economic')">Economic Impact</a> <!-- New Link -->
+    </div>
+
+    <!-- Home Section -->
+    <div id="home" class="section active">
+        <h2>Welcome</h2>
+        <p>Discover the real impact of phosphate mining on Gafsa's environment and economy . Your voice matters! Our platform is a space for the local community to share their insights, contribute weather reports, and access real-time weather data, helping everyone gain a deeper understanding of the region's challenges and opportunities.</p>
+        <div style="text-align: center;">
+            <img id="header-image"
+                 src="https://i0.wp.com/lapresse.tn/wp-content/uploads/2020/08/phosphate-tn-e1596565683879.jpg?w=540&ssl=1"
+                 alt="phosphate gafsa"/>
+        </div>
+    </div>
+
+    <!-- Location Section -->
+    <div id="location" class="section">
+        <h2>Phosphate Mining Locations</h2>
+        <div id="map"></div>
+    </div>
+    <div id="weather" class="section">
+        <h2 class="text-center my-4">Weather Information</h2>
+        <div class="weather-info card p-4 mb-4">
+            <h4 class="card-title">Weather in Gafsa</h4>
+            <p id="weather-temp" class="card-text"></p>
+            <p id="weather-humidity" class="card-text"></p>
+            <p id="weather-conditions" class="card-text"></p>
+        </div>
+        <button id="refresh-weather-btn" class="btn btn-primary">Refresh Weather</button>
+
+
+        <!-- Dashboard Section -->
+
+        <form id="report-form" class="report-form">
+            <input type="text" id="content" placeholder="Report Content" required/>
+            <input type="text" id="city" placeholder="City" value="Gafsa" readonly/>
+            <textarea id="environmental-info" placeholder="Environmental Information"></textarea>
+            <button type="submit">Submit Report</button>
+        </form>
+
+
+        <div id="reports-list">
+            <h3>Submitted Reports</h3>
+            <ul id="reports-ul"></ul>  <!-- This is where the reports will be displayed -->
+        </div>
+
+        <h2>Environmental Dashboard</h2>
+        <div class="chart-container">
+            <canvas id="environmentChart" width="400" height="200"></canvas>
+            <button id="loadWeatherData" class="btn btn-primary">Load Weather Data</button>
+        </div>
+    </div>
+
+    <!-- Economic Impact Section -->
+    <div id="economic" class="section">
+        <h2>Economic Impact of Phosphate Mining</h2>
+        <p>The phosphate industry plays a significant role in Tunisia's economy, contributing to national revenue
+            and job creation.</p>
+        <canvas id="economicChart" width="400" height="200"></canvas>
+        <div id="post-opinion" class=" mt-4 ">
+            <h3 class="text-center mb-4">Share Your Opinion</h3>
+
+            <!-- Opinion Form -->
+            <form id="opinion-form" class="mb-4">
+                <div class="form-group">
+                    <label for="opinion-text" class="h5">Your Opinion about Phosphate Impact</label>
+                    <textarea id="opinion-text" class="form-control" placeholder="Your opinion..." required
+                              rows="5"></textarea>
+                </div>
+                <button class="btn btn-success btn-block mt-3" type="submit">Submit Opinion</button>
+            </form>
+
+            <!-- Opinions Section -->
+            <div class="phosphate-opinions">
+                <h2 class="text-center mb-4">Opinions on Phosphate Mining</h2>
+
+                <button id="load-opinions-btn" class="btn btn-info btn-block mb-3">Show Opinions</button>
+
+                <ul id="opinions-list" class="list-group" style="display: none;">
+                    <!-- Opinions will be dynamically loaded here -->
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const map = L.map('map').setView([34.4250, 8.7842], 12);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const phosphateLocations = [
+        [34.4375, 8.7895],
+        [34.4290, 8.7720],
+        [34.4250, 8.7830],
+        [34.4300, 8.7860]
+    ];
+    phosphateLocations.forEach(location => {
+        L.marker(location).addTo(map).bindPopup("Phosphate Site");
+    });
+    setTimeout(() => map.invalidateSize(), 100);
+
+    // Section Navigation
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+        if (sectionId === 'location') {
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+    }
+
+    // Dashboard Chart
+    const ctx = document.getElementById('environmentChart').getContext('2d');
+    let environmentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Wind Speed (m/s)', 'Pressure (hPa)', 'Humidity (%)'],
+            datasets: [{
+                label: 'Environmental Metrics',
+                data: [0, 0, 0],  // Default empty values
+                backgroundColor: ['#FF5733', '#33FF57', '#3375FF']
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+    // Economic Chart
+    const econCtx = document.getElementById('economicChart').getContext('2d');
+    const economicChart = new Chart(econCtx, {
+        type: 'line',
+        data: {
+            labels: ['2020', '2021', '2022', '2023', '2024'], 
+            datasets: [{
+                label: 'Economic Growth Due to Phosphate Production in %',
+                data: [3.8 , 3 , 3, 2.7, 2.5], 
+                borderColor: '#4CAF50',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("phosphate-form");
+        const opinionsList = document.getElementById("opinions-list");
+        const loadOpinionsBtn = document.getElementById("load-opinions-btn");
+
+        // Function to fetch and display opinions
+        async function fetchOpinions() {
+            try {
+                const response = await fetch('/get_phosphate_opinions'); // This is your Flask endpoint
+                if (response.ok) {
+                    const opinions = await response.json(); // Parse the JSON response
+                    const opinionsList = document.getElementById('opinions-list');
+                    opinionsList.innerHTML = ""; // Clear any existing opinions
+
+                    if (opinions.length === 0) {
+                        opinionsList.innerHTML = "<li>No opinions yet.</li>"; // Handle empty opinions
+                    } else {
+                        // Loop through the opinions and create list items
+                        opinions.forEach(opinion => {
+                            const listItem = document.createElement("li");
+                            listItem.classList.add("list-group-item"); // Add Bootstrap class for styling
+                            listItem.innerHTML = `
+                        <strong>Opinion:</strong> ${opinion.opinion} <br>
+                        <small>Submitted on: ${new Date(opinion.created_at).toLocaleString()}</small>
+                    `;
+                            opinionsList.appendChild(listItem);
+                        });
+                    }
+                } else {
+                    console.error("Failed to fetch opinions", response.status);
+                }
+            } catch (error) {
+                console.error("Error fetching opinions:", error);
+            }
+        }
+
+
+        // Handle button click to show/hide opinions
+        loadOpinionsBtn.addEventListener("click", async () => {
+            if (opinionsList.style.display === "none") {
+                await fetchOpinions();
+                opinionsList.style.display = "block";
+                loadOpinionsBtn.textContent = "Hide Opinions";
+            } else {
+                opinionsList.style.display = "none";
+                loadOpinionsBtn.textContent = "Show Opinions";
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const opinion = document.getElementById("opinion").value;
+            if (!opinion) return;
+
+            try {
+                const response = await fetch("/add_phosphate_opinion", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({opinion}),
+                });
+
+                if (response.ok) {
+                    document.getElementById("opinion").value = ""; // Clear the input
+                    if (opinionsList.style.display === "block") {
+                        fetchOpinions(); // Reload opinions if the list is visible
+                    }
+                } else {
+                    console.error("Failed to add opinion");
+                }
+            } catch (error) {
+                console.error("Error submitting opinion:", error);
+            }
+        });
+    });
+
+
+    async function fetchWeather() {
+        try {
+            const response = await fetch('/weather');  // API call to Flask backend
+            if (response.ok) {
+                const weatherData = await response.json();
+                // Update the HTML with the fetched weather data
+                document.getElementById('weather-temp').innerText = `Temperature: ${weatherData.temperature}`;
+                document.getElementById('weather-humidity').innerText = `Humidity: ${weatherData.humidity}`;
+                document.getElementById('weather-conditions').innerText = `Conditions: ${weatherData.conditions}`;
+            } else {
+                console.error("Failed to fetch weather data.");
+                alert("Could not fetch weather data.");
+            }
+        } catch (error) {
+            console.error("Error fetching weather data:", error);
+            alert("Error fetching weather data.");
+        }
+    }
+
+    // Fetch weather data when the page loads
+    document.addEventListener('DOMContentLoaded', fetchWeather);
+
+    // Refresh weather data when the button is clicked
+    document.getElementById('refresh-weather-btn').addEventListener('click', fetchWeather);
+
+    // Function to handle form submission
+    async function submitReportForm(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        // Get the values from the form
+        const content = document.getElementById('content').value;
+        const city = document.getElementById('city').value;
+        const environmentalInfo = document.getElementById('environmental-info').value;
+
+        // Create a JSON object to send with the POST request
+        const reportData = {
+            content: content,
+            city: city,
+            environmental_info: environmentalInfo
+        };
+
+        try {
+            // Send the data to the backend using fetch
+            const response = await fetch('/add_report', {
+                method: 'POST',  // Send a POST request
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(reportData)
+            });
+
+            // Handle the response from the server
+            if (response.ok) {
+                const responseData = await response.json();
+                alert('Report submitted successfully!');
+                // Optionally, reset the form after submission
+                document.getElementById('report-form').reset();
+                 fetchReports();
+            } else {
+                console.error("Failed to submit report:", response.status);
+                alert('Failed to submit the report. Please try again later.');
+            }
+        } catch (error) {
+            console.error("Error submitting the report:", error);
+            alert('An error occurred while submitting the report.');
+        }
+
+    }
+
+    // Attach the function to the form submission event
+    document.getElementById('report-form').addEventListener('submit', submitReportForm);
+
+
+    async function fetchReports() {
+        try {
+            const response = await fetch('/get_reports');
+            if (response.ok) {
+                const reports = await response.json();
+                const reportsUl = document.getElementById('reports-ul');
+                reportsUl.innerHTML = '';  // Clear the list before adding new items
+
+                reports.forEach(report => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                    <strong>Content:</strong> ${report.content} <br>
+                    <strong>City:</strong> ${report.city} <br>
+                    <strong>Environmental Info:</strong> ${report.environmental_info} <br>
+                    <strong>Created At:</strong> ${report.created_at}
+                `;
+                    reportsUl.appendChild(listItem);
+                });
+            } else {
+                console.error("Failed to fetch reports");
+            }
+        } catch (error) {
+            console.error("Error fetching reports:", error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchReports);
+
+
+
+
+
+
+    async function submitOpinion(opinionText) {
+        if (!opinionText.trim()) {
+            alert("Please provide an opinion.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/add_phosphate_opinion", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({opinion: opinionText}) // Sending the opinion in the body
+            });
+
+            if (response.ok) {
+                // If the opinion was successfully submitted
+                const result = await response.json();
+                alert(result.message);  // Show success message
+
+                // Optionally, you could clear the textarea or update the opinions list here
+                document.getElementById("opinion-text").value = '';
+            } else {
+                const errorResult = await response.json();
+                alert(`Error: ${errorResult.error}`);
+            }
+        } catch (error) {
+            console.error("Error submitting opinion:", error);
+            alert("There was an error submitting your opinion. Please try again later.");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const opinionForm = document.getElementById("opinion-form");
+
+        opinionForm.addEventListener("submit", async (e) => {
+            e.preventDefault(); // Prevent form from reloading the page
+
+            const opinionText = document.getElementById("opinion-text").value;
+
+            // Call the submitOpinion function with the opinionText value
+            submitOpinion(opinionText);
+        });
+    });
+
+    function fetchWeatherData() {
+        const API_KEY = "7b025f38abc4219df7e046cf9d8e23cf";
+        const city = "Gafsa";  // You can change this to any city you want
+        const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Extracting specific values from the API response
+                const windSpeed = data.wind.speed; // Wind speed in m/s
+                const pressure = data.main.pressure; // Pressure in hPa
+                const humidity = data.main.humidity; // Humidity percentage
+
+                // Update chart data with the fetched values
+                environmentChart.data.datasets[0].data = [windSpeed, pressure, humidity];
+                environmentChart.update();
+            })
+            .catch(error => {
+                console.error('Error fetching weather data:', error);
+            });
+    }
+
+    // Event listener for the button to fetch and display data
+    document.getElementById('loadWeatherData').addEventListener('click', fetchWeatherData);
+    document.addEventListener('DOMContentLoaded', fetchWeatherData);
+
+</script>
+</body>
+
+</html> 
